@@ -20,6 +20,8 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            max-width: 500px;
+            width: 100%;
         }
         h1 {
             color: #333;
@@ -52,6 +54,10 @@
             color: orange;
             font-weight: bold;
         }
+        .red {
+            color: red;
+            font-weight: bold;
+        }
         .player {
             margin-top: 20px;
         }
@@ -82,12 +88,16 @@
                 <input type="text" id="guess1" placeholder="Tahmininizi girin">
                 <button onclick="makeGuess(1)">Tahmin Yap</button>
                 <div class="result" id="result1"></div>
+                <div class="score" id="score1"></div>
+                <div class="attempts" id="attempts1"></div>
             </div>
             <div class="player" id="player2">
                 <h2 id="player2-label"></h2>
                 <input type="text" id="guess2" placeholder="Tahmininizi girin">
                 <button onclick="makeGuess(2)">Tahmin Yap</button>
                 <div class="result" id="result2"></div>
+                <div class="score" id="score2"></div>
+                <div class="attempts" id="attempts2"></div>
             </div>
         </div>
     </div>
@@ -98,6 +108,10 @@
         let currentPlayer = 1;
         let player1Name = '';
         let player2Name = '';
+        let attempts1 = 10;
+        let attempts2 = 10;
+        let score1 = 100;
+        let score2 = 100;
 
         function startGame() {
             player1Name = document.getElementById('player1-name').value;
@@ -120,6 +134,8 @@
             document.getElementById('player2-label').innerText = player2Name;
             document.getElementById('name-inputs').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
+
+            updateScoreAndAttempts();
         }
 
         function generateRandomNumber(length) {
@@ -146,18 +162,42 @@
             const result = evaluateGuess(guess, secretNumber);
             document.getElementById(`result${player}`).innerHTML = result;
 
+            if (player === 1) {
+                attempts1--;
+                score1 -= 10;
+            } else {
+                attempts2--;
+                score2 -= 10;
+            }
+
+            updateScoreAndAttempts();
+
             currentPlayer = currentPlayer === 1 ? 2 : 1;
+
+            if (attempts1 === 0 || attempts2 === 0) {
+                endGame();
+            }
         }
 
         function evaluateGuess(guess, secretNumber) {
             let greenCount = 0;
             let yellowCount = 0;
+            let redCount = 0;
+            let guessCount = {};
+
+            for (let char of secretNumber) {
+                guessCount[char] = (guessCount[char] || 0) + 1;
+            }
 
             for (let i = 0; i < guess.length; i++) {
                 if (guess[i] === secretNumber[i]) {
                     greenCount++;
-                } else if (secretNumber.includes(guess[i])) {
+                    guessCount[guess[i]]--;
+                } else if (secretNumber.includes(guess[i]) && guessCount[guess[i]] > 0) {
                     yellowCount++;
+                    guessCount[guess[i]]--;
+                } else {
+                    redCount++;
                 }
             }
 
@@ -167,7 +207,20 @@
                 document.getElementById('name-inputs').classList.remove('hidden');
             }
 
-            return `Yeşil: ${greenCount}, Sarı: ${yellowCount}`;
+            return `Yeşil: <span class="green">${greenCount}</span>, Sarı: <span class="yellow">${yellowCount}</span>, Kırmızı: <span class="red">${redCount}</span>`;
+        }
+
+        function updateScoreAndAttempts() {
+            document.getElementById('score1').innerText = `Puan: ${score1}`;
+            document.getElementById('attempts1').innerText = `Kalan Hakkınız: ${attempts1}`;
+            document.getElementById('score2').innerText = `Puan: ${score2}`;
+            document.getElementById('attempts2').innerText = `Kalan Hakkınız: ${attempts2}`;
+        }
+
+        function endGame() {
+            alert('Oyun bitti!');
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('name-inputs').classList.remove('hidden');
         }
     </script>
 </body>
