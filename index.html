@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say Tahmin Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        select, input[type="text"], button {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: calc(100% - 24px);
+        }
+        button {
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        .green {
+            color: green;
+            font-weight: bold;
+        }
+        .yellow {
+            color: orange;
+            font-weight: bold;
+        }
+        .player {
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Say Tahmin Oyunu</h1>
+        <div id="name-inputs">
+            <label for="player1-name">Oyuncu 1 Adı:</label>
+            <input type="text" id="player1-name" placeholder="Oyuncu 1 adı">
+            <label for="player2-name">Oyuncu 2 Adı:</label>
+            <input type="text" id="player2-name" placeholder="Oyuncu 2 adı">
+            <label for="digit-length">Rakam Uzunluğu:</label>
+            <select id="digit-length">
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <button onclick="startGame()">Oyunu Başlat</button>
+        </div>
+        <div id="game" class="hidden">
+            <div class="player" id="player1">
+                <h2 id="player1-label"></h2>
+                <input type="text" id="guess1" placeholder="Tahmininizi girin">
+                <button onclick="makeGuess(1)">Tahmin Yap</button>
+                <div class="result" id="result1"></div>
+            </div>
+            <div class="player" id="player2">
+                <h2 id="player2-label"></h2>
+                <input type="text" id="guess2" placeholder="Tahmininizi girin">
+                <button onclick="makeGuess(2)">Tahmin Yap</button>
+                <div class="result" id="result2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let secretNumber1 = '';
+        let secretNumber2 = '';
+        let currentPlayer = 1;
+        let player1Name = '';
+        let player2Name = '';
+
+        function startGame() {
+            player1Name = document.getElementById('player1-name').value;
+            player2Name = document.getElementById('player2-name').value;
+
+            if (!player1Name || !player2Name) {
+                alert('Lütfen her iki oyuncunun da ismini girin.');
+                return;
+            }
+
+            const digitLength = document.getElementById('digit-length').value;
+            secretNumber1 = generateRandomNumber(digitLength);
+            do {
+                secretNumber2 = generateRandomNumber(digitLength);
+            } while (secretNumber1 === secretNumber2);
+            
+            console.log(`Player 1 Secret: ${secretNumber1}, Player 2 Secret: ${secretNumber2}`); // Debug amaçlı, oyunun çalıştığını görmek için
+
+            document.getElementById('player1-label').innerText = player1Name;
+            document.getElementById('player2-label').innerText = player2Name;
+            document.getElementById('name-inputs').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+        }
+
+        function generateRandomNumber(length) {
+            let number = '';
+            while (number.length < length) {
+                const digit = Math.floor(Math.random() * 10);
+                if (!number.includes(digit)) {
+                    number += digit;
+                }
+            }
+            return number;
+        }
+
+        function makeGuess(player) {
+            const guessInput = document.getElementById(`guess${player}`);
+            const guess = guessInput.value;
+
+            if (guess.length !== secretNumber1.length) {
+                alert('Tahmin edilen sayı doğru uzunlukta değil.');
+                return;
+            }
+
+            const secretNumber = player === 1 ? secretNumber2 : secretNumber1;
+            const result = evaluateGuess(guess, secretNumber);
+            document.getElementById(`result${player}`).innerHTML = result;
+
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+        }
+
+        function evaluateGuess(guess, secretNumber) {
+            let greenCount = 0;
+            let yellowCount = 0;
+
+            for (let i = 0; i < guess.length; i++) {
+                if (guess[i] === secretNumber[i]) {
+                    greenCount++;
+                } else if (secretNumber.includes(guess[i])) {
+                    yellowCount++;
+                }
+            }
+
+            if (greenCount === secretNumber.length) {
+                alert(`Oyuncu ${currentPlayer === 1 ? player1Name : player2Name} kazandı!`);
+                document.getElementById('game').classList.add('hidden');
+                document.getElementById('name-inputs').classList.remove('hidden');
+            }
+
+            return `Yeşil: ${greenCount}, Sarı: ${yellowCount}`;
+        }
+    </script>
+</body>
+</html>
